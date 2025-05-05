@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 210 100% 33%; /* Brand blue */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    font-family: "Times New Roman", Times, serif;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Times New Roman", Times, serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select {
+    font-family: "Times New Roman", Times, serif;
+  }
+}
+
+/* Custom Styles */
+.logo-text {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.nav-link {
+  @apply relative px-2 py-1 transition-colors hover:text-brand-blue;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.nav-link.active {
+  @apply text-brand-blue;
+}
+
+.nav-link.active::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-full h-0.5 bg-brand-blue;
+}
+
+.product-card {
+  @apply overflow-hidden transition-all duration-300 border rounded-md hover:shadow-lg;
+}
+
+.btn-primary {
+  @apply px-4 py-2 text-white transition-colors rounded-md bg-brand-blue hover:bg-brand-lightBlue;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 text-brand-blue transition-colors bg-white border border-brand-blue rounded-md hover:bg-brand-gray;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.admin-sidebar {
+  @apply fixed top-0 left-0 h-full w-64 bg-white shadow-md z-10;
+}
+
+.admin-content {
+  @apply ml-64 p-6;
+}
