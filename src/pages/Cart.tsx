@@ -96,7 +96,7 @@ const Cart = () => {
       const fullName = `${checkoutData.personalData.firstName} ${checkoutData.personalData.lastName}`;
       const shippingAddress = formatShippingAddress(checkoutData.deliveryData);
       
-      // First ensure the email column exists in the orders table
+      // First ensure the email column exists in the orders table and update schema
       try {
         await supabase.rpc('pgSQL', {
           query: `
@@ -117,11 +117,27 @@ const Cart = () => {
             
             -- Ensure the email column exists
             ALTER TABLE orders ADD COLUMN IF NOT EXISTS email TEXT;
+            
+            -- IMPORTANT: Update order_items table to use TEXT for product_id
+            ALTER TABLE IF EXISTS order_items 
+            ALTER COLUMN product_id TYPE TEXT 
+            USING product_id::text;
+            
+            -- Recreate order_items table if it doesn't exist with the correct column type
+            CREATE TABLE IF NOT EXISTS order_items (
+              id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+              order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+              product_id TEXT NOT NULL,
+              product_name TEXT NOT NULL,
+              quantity INTEGER NOT NULL,
+              price DECIMAL(10, 2) NOT NULL,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            );
           `
         });
       } catch (columnError) {
-        console.error("Error checking/adding email column:", columnError);
-        // Continue anyway as the column might already exist
+        console.error("Error updating database schema:", columnError);
+        // Continue anyway as the tables might already exist
       }
       
       // Create new order in the database
@@ -145,33 +161,15 @@ const Cart = () => {
         throw new Error(`Помилка створення замовлення: ${orderError.message}`);
       }
       
-      // Save order items - FIX FOR UUID ISSUE
-      const orderItems = cartItems.map(item => {
-        // Generate proper UUID for each order item
-        const orderItemId = uuidv4();
-        
-        // Handle product_id - if it starts with 'prod-', generate a UUID based on it
-        let productId = item.product.id;
-        if (productId.startsWith('prod-')) {
-          // Create a proper Uint8Array from the product ID string
-          const encoder = new TextEncoder();
-          const productBytes = encoder.encode(productId);
-          
-          // Generate a UUID using the bytes from the product ID
-          productId = uuidv4({
-            random: productBytes
-          });
-        }
-        
-        return {
-          id: orderItemId,
-          order_id: orderId,
-          product_id: productId,
-          product_name: item.product.name,
-          quantity: item.quantity,
-          price: item.product.price,
-        };
-      });
+      // Save order items - ensure product_id is stored as text
+      const orderItems = cartItems.map(item => ({
+        id: uuidv4(),
+        order_id: orderId,
+        product_id: String(item.product.id), // Convert to string explicitly
+        product_name: item.product.name,
+        quantity: item.quantity,
+        price: item.product.price,
+      }));
       
       const { error: itemsError } = await supabase
         .from('order_items')
@@ -210,7 +208,7 @@ const Cart = () => {
       case 'ukrposhta':
         return `Укрпошта, ${deliveryData.city}, ${deliveryData.address || ''}`;
       case 'selfpickup':
-        return `Самовивіз`;
+        return `Самови��із`;
       default:
         return `${deliveryData.city}, ${deliveryData.address || ''}`;
     }
@@ -409,3 +407,4 @@ const Cart = () => {
 };
 
 export default Cart;
+
